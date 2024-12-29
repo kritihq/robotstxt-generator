@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Robots.txt Generator</title>
+    <script type="text/javascript" src="/assets/robotstxt-bots.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #fff;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+
+      input[type="text"], textarea {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+
+      textarea {
+        height: 100px;
+        resize: vertical;
+      }
+
+      button {
+        background-color: #16a34a;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        white-space: nowrap;
+        display: flex; 
+        flex-flow: row nowrap; 
+        align-items: center; 
+        gap: 8px;
+      }
+
+      button:hover {
+        background-color: #166534;
+      }
+
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+
+      article {
+        margin: 4rem auto; 
+        width: 70%;
+        max-width: 1280px;
+      }
+
+      @media (min-width:320px)  {
+        article {
+          margin: 2rem auto;
+           width: 90%;
+        }
+      }
+
+      .rule-container {
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+
+      .useragent-entry {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 8px;
+        align-items: start;
+      }
+      
+      .remove-btn {
+        background-color: #dc2626;
+      }
+      
+      .remove-btn:hover {
+        background-color: #991b1b;
+      }
+      
+      .bot-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+
+        width: 700px;
+        max-height: 350px;
+        
+        overflow-y: auto;
+        
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        z-index: 1000;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+      .bot-dropdown.show {
+        display: block;
+      }
+
+      @media(min-width:320px) {
+        .bot-dropdown {
+          width: 250px;
+        }
+      }
+      
+      .bot-option {
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+      .bot-option:hover {
+        background-color: #f0f0f0;
+      }
+    </style>
+	</head>
+	<body>
+    <article>
+      <h1>Easiest Way to Generate Robots.txt file</h1>
+      <p>Try the free Robots.txt generator.</p>
+      <ol>
+        <li>Select or type in bot name (user-agent)</li>
+        <li>Add allowed and disallowed URLs</li>
+        <li>Click "Generate Robots.txt"</li>
+      </ol>
+      <section style="display: flex; flex-flow: row wrap; gap: 2rem; height: 65dvh; border: 1px solid #c1c1c1; border-radius: 10px; justify-content: space-evenly; background-color: #f5f5f5; padding: 1rem; overflow-y: scroll;">
+        <div style="flex-grow: 1; width: 45%; border: 1px solid #c1c1c1; border-radius: 10px; background-color: #fff; overflow: scroll; height: 100%;">
+          <div id="rules-form-container"></div>
+          <div style="padding: 0 1rem; display: flex; flex-flow: row wrap; gap: 12px; align-items: center; justify-content: flex-end; margin-bottom: 1rem;">
+            <button type="button" id="addRule">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-plus"><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></svg> Add Rule
+            </button>
+            <button type="button" id="generateBtn">Generate Robots.txt</button>
+          </div>
+        </div>
+        <pre id="preview" style="white-space: pre-wrap; background-color: #f5f5f5; padding: 15px; border-radius: 4px; display: block; flex-grow: 1; width: 45%; overflow: scroll; margin: 0;"></pre>
+      </section>
+    </article>
+		<script>
+			document.getElementById('addRule').addEventListener('click', addNewRule);
+			document.getElementById('generateBtn').addEventListener('click', generateRobotsTxt);
+      window.addEventListener('onload', addNewRule(false));
+
+			function setupRule(ruleElement) {
+				const addBotBtn = ruleElement.querySelector('.add-bot-btn');
+				const useragentsContainer = ruleElement.querySelector('.useragents-container');
+				// Setup the first user-agent input
+				setupUserAgentInput(ruleElement.querySelector('.useragent-entry'));
+				const firstEntry = ruleElement.querySelector('.useragent-entry');
+				addRemoveButton(firstEntry);
+				updateRemoveButtons(useragentsContainer);
+        // addUserAgentInput(useragentsContainer); // add single useragent input by default
+				addBotBtn.addEventListener('click', () => addUserAgentInput(useragentsContainer));
+			}
+
+			function addRemoveButton(entryElement) {
+				if (!entryElement.querySelector('.remove-btn')) {
+					const removeBtn = document.createElement('button');
+					removeBtn.type = 'button';
+					removeBtn.className = 'remove-btn';
+					removeBtn.textContent = 'Remove';
+					removeBtn.onclick = () => removeUserAgent(removeBtn);
+					entryElement.appendChild(removeBtn);
+				}
+			}
+
+			function setupUserAgentInput(entryElement) {
+				const input = entryElement.querySelector('.useragent-input');
+				const dropdown = entryElement.querySelector('.bot-dropdown');
+				// Populate dropdown
+				dropdown.innerHTML = ''; 
+        for (var name in bots) {
+          const bot = bots[name];
+          dropdown.innerHTML += `
+						<div class="bot-option" data-value="${name}" style="display: flex; min-height: 20px;">
+							<span class="bot-name" style="flex-basis: 50%; font-weight: bold;">${name}</span>
+							<span class="bot-description" style="flex-basis: 50%; font-size: 0.9em; color: #666; margin-left: 10px;">${bot.description}</span>
+						</div>
+          `;
+        } 
+				// Show dropdown on focus
+				input.addEventListener('focus', () => {
+					closeAllDropdowns();
+					dropdown.classList.add('show');
+				});
+				// Handle selection
+				dropdown.addEventListener('click', (e) => {
+					const option = e.target.closest('.bot-option');
+					if (option) {
+						input.value = option.dataset.value;
+						dropdown.classList.remove('show');
+						handleWildcardUserAgent(input);
+					}
+				});
+				// Filter on type
+				input.addEventListener('input', (e) => {
+					const value = e.target.value.toLowerCase();
+					Array.from(dropdown.children).forEach(option => {
+						const text = option.textContent.toLowerCase();
+						option.style.display = text.includes(value) ? 'block' : 'none';
+					});
+					handleWildcardUserAgent(input);
+				});
+			}
+
+			function handleWildcardUserAgent(input) {
+				const rule = input.closest('.rule-container');
+				const addBotBtn = rule.querySelector('.add-bot-btn');
+				const useragentsContainer = rule.querySelector('.useragents-container');
+				const allInputs = useragentsContainer.querySelectorAll('.useragent-input');
+				if (input.value === '*') {
+					// Remove all other user agents except the current one
+					Array.from(allInputs).forEach(otherInput => {
+						if (otherInput !== input && otherInput.closest('.useragent-entry')) {
+							otherInput.closest('.useragent-entry').remove();
+						}
+					});
+					// Disable add bot button
+					addBotBtn.disabled = true;
+				} else {
+					// Enable add bot button if no wildcard exists
+					const hasWildcard = Array.from(allInputs).some(input => input.value === '*');
+					addBotBtn.disabled = hasWildcard;
+				}
+				updateRemoveButtons(useragentsContainer);
+			}
+
+			function addUserAgentInput(container) {
+				const entry = document.createElement('div');
+				entry.className = 'useragent-entry';
+				entry.innerHTML = `
+          <div class="useragent-input-group" style="position: relative; flex-grow: 1;">
+            <input type="text" class="useragent-input" placeholder="Click to select or type bot name" required>
+            <div class="bot-dropdown"></div>
+          </div>
+          <button type="button" class="remove-btn" onclick="removeUserAgent(this)" style="padding: 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        `;
+				addRemoveButton(entry);
+				container.appendChild(entry);
+				setupUserAgentInput(entry);
+				updateRemoveButtons(container);
+			}
+
+			function removeUserAgent(button) {
+				const entry = button.closest('.useragent-entry');
+				const container = entry.closest('.useragents-container');
+				entry.remove();
+				updateRemoveButtons(container);
+				// Re-enable add bot button if wildcard was removed
+				const rule = container.closest('.rule-container');
+				const addBotBtn = rule.querySelector('.add-bot-btn');
+				const remainingInputs = container.querySelectorAll('.useragent-input');
+				const hasWildcard = Array.from(remainingInputs).some(input => input.value === '*');
+				addBotBtn.disabled = hasWildcard;
+			}
+
+			function updateRemoveButtons(container) {
+				const entries = container.querySelectorAll('.useragent-entry');
+				entries.forEach(entry => {
+					const removeBtn = entry.querySelector('.remove-btn');
+					if (removeBtn) {
+						removeBtn.disabled = entries.length === 1;
+					}
+				});
+			}
+
+			function closeAllDropdowns() {
+				document.querySelectorAll('.bot-dropdown').forEach(dropdown => {
+					dropdown.classList.remove('show');
+				});
+			}
+			// Close dropdowns when clicking outside
+			document.addEventListener('click', (e) => {
+				if (!e.target.matches('.useragent-input')) {
+					closeAllDropdowns();
+				}
+			});
+
+			function addNewRule(addSeparator = true) {
+				const rules = document.querySelectorAll('.rule-container');
+				const container = document.getElementById('rules-form-container');
+				const newRule = document.createElement('div');
+				newRule.className = 'rule-container';
+				newRule.innerHTML = `
+          <div class="useragents-container">
+            <label>Bot (s):</label>
+            <div class="useragent-entry">
+              <div class="useragent-input-group" style="position: relative; flex-grow: 1;">
+                <input type="text" class="useragent-input" placeholder="Click to select or type bot name" required>
+                <div class="bot-dropdown"></div>
+              </div>
+              <button type="button" class="remove-btn" onclick="removeUserAgent(this)" style="padding: 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+            </div>
+          </div>
+          <button type="button" class="add-bot-btn"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-plus"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg> Add Bot</button>
+          <div style="margin-top: 4rem; display: flex; flex-flow: row wrap; justify-content: space-between; gap: 10px;">
+            <div style="margin-bottom: 10px; flex-basis: 45%;">
+              <label>Allowed:</label>
+              <textarea class="allow-urls" placeholder="One per line, example:&#10;/blogs&#10;/public"></textarea>
+            </div>
+            <div style="margin-bottom: 10px; flex-basis: 45%;">
+              <label>Disallowed:</label>
+              <textarea class="disallow-urls" placeholder="One per line, example:&#10;/auth&#10;/admin"></textarea>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: row-reverse; justify-content: space-between; margin-top: 15px; margin-right: 2rem;">
+            <button type="button" class="remove-rule remove-btn"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-minus"><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M21 12h-6"/></svg> Remove Rule</button>
+          </div>
+        `;
+        if (addSeparator) container.insertAdjacentHTML('beforeend', '<hr class="rule-separator" style="margin: 2rem 15%; height: 1px; border: none; background-color: #c1c1c1;">');
+				container.appendChild(newRule);
+				setupRule(newRule);
+				updateButtonStates();
+			}
+
+			function removeRule(button) {
+				button.closest('.rule-container').remove();
+        const separators = document.querySelectorAll("#rules-form-container > hr");
+        if (separators.length > 0) separators[separators.length - 1].remove();
+				updateButtonStates();
+			}
+
+			function updateButtonStates() {
+				const addButton = document.getElementById('addRule');
+				const rules = document.querySelectorAll('.rule-container');
+				rules.forEach((rule, index) => {
+					const removeBtn = rule.querySelector('.remove-rule');
+					if (rules.length === 1) {
+						removeBtn.style.display = 'none';
+					} else {
+						removeBtn.style.display = 'flex';
+						removeBtn.onclick = () => removeRule(removeBtn);
+					}
+				});
+			}
+
+			function generateRobotsTxt() {
+				const rules = document.getElementsByClassName('rule-container');
+				let robotsTxt = '';
+				for (let rule of rules) {
+					const userAgents = Array.from(rule.querySelectorAll('.useragent-input')).map(input => input.value.trim()).filter(value => value);
+					const allowUrls = rule.querySelector('.allow-urls').value.trim();
+					const disallowUrls = rule.querySelector('.disallow-urls').value.trim();
+					if (userAgents.length > 0) {
+						// Add each user agent
+						userAgents.forEach(agent => {
+							robotsTxt += `User-agent: ${agent}\n`;
+						});
+						// Add allow rules
+						if (allowUrls) {
+							allowUrls.split('\n').forEach(url => {
+								if (url.trim()) {
+									robotsTxt += `Allow: ${url.trim()}\n`;
+								}
+							});
+						}
+						// Add disallow rules
+						if (disallowUrls) {
+							disallowUrls.split('\n').forEach(url => {
+								if (url.trim()) {
+									robotsTxt += `Disallow: ${url.trim()}\n`;
+								}
+							});
+						}
+						robotsTxt += '\n';
+					}
+				}
+				const preview = document.getElementById('preview');
+				preview.textContent = robotsTxt;
+			}
+		</script>
+	</body>
+</html>
