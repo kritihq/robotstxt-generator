@@ -5,6 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Robots.txt Generator</title>
     <script type="text/javascript" src="/assets/robotstxt-generator/bots.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"></script>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -69,6 +70,50 @@
         }
       }
 
+      .generator-widget {
+        display: flex; 
+        flex-flow: row wrap; 
+        gap: 2rem; 
+        height: 65dvh; 
+        border: 1px solid #c1c1c1; 
+        border-radius: 10px; 
+        justify-content: space-evenly; 
+        background-color: #f5f5f5; 
+        padding: 1rem;
+      }
+
+      @media (max-width: 480px) {
+        .generator-widget {
+          padding: 0.2rem;
+          height: 100%;
+        }
+      }
+
+      .generator-widget-input {
+        flex-grow: 1; 
+        width: 45%; 
+        height: 100%; 
+        overflow-y: scroll;
+        border: 1px solid #c1c1c1; 
+        border-radius: 10px; 
+        background-color: #fff; 
+      }
+
+      .generator-widget-output {
+        flex-grow: 1; 
+        width: 45%;
+        height: 100%;
+        overflow-y: scroll;
+        display: flex;
+        flex-flow: column nowrap;
+      }
+
+      @media (max-width: 480px) {
+        .generator-widget-output {
+          display: none;
+        }
+      }
+
       .rule-container {
         padding: 15px;
         margin-bottom: 15px;
@@ -128,14 +173,12 @@
 	<body>
     <article>
       <h1>Easiest Way to Generate Robots.txt file</h1>
-      <p>Try the free Robots.txt generator.</p>
-      <ol>
-        <li>Select or type in bot name (user-agent)</li>
-        <li>Add allowed and disallowed URLs</li>
-        <li>Click "Generate Robots.txt"</li>
-      </ol>
-      <section style="display: flex; flex-flow: row wrap; gap: 2rem; height: 65dvh; border: 1px solid #c1c1c1; border-radius: 10px; justify-content: space-evenly; background-color: #f5f5f5; padding: 1rem; overflow-y: scroll;">
-        <div style="flex-grow: 1; width: 45%; border: 1px solid #c1c1c1; border-radius: 10px; background-color: #fff; overflow: scroll; height: 100%;">
+      <section class="generator-widget">
+        <div class="generator-widget-input">
+          <div style="padding: 15px; margin-bottom: 15px;">
+            <label for="sitemap-input">Sitemap (s):</label>
+            <textarea id="sitemap-input" rows="5" cols="30" required placeholder="One per line&#10;https://kriti.blog/sitemap.xml&#10;https://kriti.blog/fr/sitemap.xml&#10;https://kriti.blog/de/sitemap.xml"></textarea>
+          </div>
           <div id="rules-form-container"></div>
           <div style="padding: 0 1rem; display: flex; flex-flow: row wrap; gap: 12px; align-items: center; justify-content: flex-end; margin-bottom: 1rem;">
             <button type="button" id="addRule">
@@ -144,13 +187,26 @@
             <button type="button" id="generateBtn">Generate Robots.txt</button>
           </div>
         </div>
-        <pre id="preview" style="white-space: pre-wrap; background-color: #f5f5f5; padding: 15px; border-radius: 4px; display: block; flex-grow: 1; width: 45%; overflow: scroll; margin: 0;"></pre>
+        <div class="generator-widget-output">
+          <div style="display: flex; flex-flow: row nowrap; align-items: center; justify-content: space-between; padding-right: 0.5rem;">
+            <p style="margin: 0; padding: 0; flex-grow: 1; text-align: center; font-family: monospace">robots.txt</p>
+            <button id="copy-output" type="button" style="flex-basis: 5%; padding: 8px; background-color: inherit; border: 1px solid #c1c1c1; border-radius: 4px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c1c1c1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-copy"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M16 4h2a2 2 0 0 1 2 2v4"/><path d="M21 14H11"/><path d="m15 10-4 4 4 4"/></svg>
+            </button>
+          </div>
+          <pre id="preview" style="white-space: pre-wrap; background-color: #f5f5f5; padding: 15px; border-radius: 4px; display: block; overflow: scroll; margin: 0;"></pre>
+        </div>
       </section>
     </article>
-		<script>
+    <script>
 			document.getElementById('addRule').addEventListener('click', addNewRule);
 			document.getElementById('generateBtn').addEventListener('click', generateRobotsTxt);
       window.addEventListener('onload', addNewRule(false));
+      new ClipboardJS('#copy-output', {
+        target: function (trigger) {
+          return document.getElementById("preview");
+        },
+      });
 
 			function setupRule(ruleElement) {
 				const addBotBtn = ruleElement.querySelector('.add-bot-btn');
@@ -307,11 +363,11 @@
           <div style="margin-top: 4rem; display: flex; flex-flow: row wrap; justify-content: space-between; gap: 10px;">
             <div style="margin-bottom: 10px; flex-basis: 45%;">
               <label>Allowed:</label>
-              <textarea class="allow-urls" placeholder="One per line, example:&#10;/blogs&#10;/public"></textarea>
+              <textarea class="allow-urls" placeholder="Relative URLs, one per line&#10;/blogs&#10;/public"></textarea>
             </div>
             <div style="margin-bottom: 10px; flex-basis: 45%;">
               <label>Disallowed:</label>
-              <textarea class="disallow-urls" placeholder="One per line, example:&#10;/auth&#10;/admin"></textarea>
+              <textarea class="disallow-urls" placeholder="Relative URLs, one per line&#10;/auth&#10;/admin"></textarea>
             </div>
           </div>
           <div style="display: flex; flex-direction: row-reverse; justify-content: space-between; margin-top: 15px; margin-right: 2rem;">
@@ -376,8 +432,23 @@
 						robotsTxt += '\n';
 					}
 				}
+
+        const sitemaps = document.getElementById("sitemap-input").value.trim();
+        if (sitemaps) {
+          sitemaps.split('\n').forEach(url => {
+            if (url.trim()) {
+              robotsTxt += `Sitemap: ${url.trim()}\n`;
+            }
+          })
+        }
+        robotsTxt += `\n`;
+
+
 				const preview = document.getElementById('preview');
 				preview.textContent = robotsTxt;
+
+        // on mobile, its `display: none` by default
+        preview.parentElement.style.display = 'flex';
 			}
 		</script>
 	</body>
