@@ -3,6 +3,15 @@
 A study in webapp development with focus on UI design. Aim of this project to design and develop an web application which will generate `robots.txt` file as per [RFC 9309](https://www.rfc-editor.org/rfc/rfc9309.html) standards.
 Application is hosted alongside free tools at [kriti.blog](https://kriti.blog/tools/robotstxt-generator/).
 
+# Demo
+
+https://github.com/user-attachments/assets/fb150e1a-b5d9-4645-803f-dcca14f5e996
+
+### Design study
+
+![robotstxt-gen2](https://github.com/user-attachments/assets/556051db-cf5e-40e1-b259-8719d4e1cefd)
+
+
 ## Stack
 
 Keeping it simple. If you think you need a server to run this locally then you are __ngmi__.
